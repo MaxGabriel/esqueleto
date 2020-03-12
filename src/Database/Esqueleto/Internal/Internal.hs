@@ -1522,7 +1522,7 @@ data UnexpectedCaseError =
 data SqlBinOpCompositeError =
     MismatchingLengthsError
   | NullPlaceholdersError
-  | DeconstructionError
+  | DeconstructionError T.Text
   deriving (Show)
 
 
@@ -2062,7 +2062,7 @@ unsafeSqlBinOpComposite op sep a b = ERaw Parens $ compose (listify a) (listify 
     deconstruct :: (TLB.Builder, [PersistValue]) -> ([TLB.Builder], [PersistValue])
     deconstruct ("?", [PersistList vals]) = (replicate (length vals) "?", vals)
     deconstruct (b', []) = (TLB.fromLazyText <$> TL.splitOn "," (TLB.toLazyText b'), [])
-    deconstruct _ = throw (SqlBinOpCompositeErr DeconstructionError)
+    deconstruct bad = throw (SqlBinOpCompositeErr (DeconstructionError (T.pack $ show bad)))
 
     compose f1 f2 info
       | not (null v1 || null v2) = throw (SqlBinOpCompositeErr NullPlaceholdersError)
